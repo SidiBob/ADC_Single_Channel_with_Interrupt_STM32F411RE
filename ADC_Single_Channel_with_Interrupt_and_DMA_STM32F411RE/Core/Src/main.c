@@ -98,19 +98,10 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_ADC_Start_IT(&hadc1);
   while (1)
-    {
-      /* DÉCLENCHEMENT PÉRIODIQUE */
-      // 1. Lancer la conversion en mode interruption (non bloquant)
-      HAL_ADC_Start_IT(&hadc1);
-
-      // 2. Le CPU fait d'autres tâches ou attend (délai)
-      // Le HAL_Delay() permet de cadencer la fréquence d'acquisition.
-      HAL_Delay(500); // Déclenchement d'une nouvelle lecture toutes les 500 ms (0.5s)
-
-      /* USER CODE END WHILE */
-      /* USER CODE BEGIN 3 */
-    }
+  {
+  }
   /* USER CODE END 3 */
 }
 
@@ -181,10 +172,10 @@ static void MX_ADC1_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
@@ -201,7 +192,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_6;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -255,13 +246,7 @@ static void MX_GPIO_Init(void)
 
 long map(long x, long in_min, long in_max, long out_min, long out_max)
 {
-    // Assurer que x ne sort pas de la plage
-    if (x < in_min) x = in_min;
-    if (x > in_max) x = in_max;
-
-    // Utiliser des parenthèses pour forcer le calcul flottant si nécessaire,
-    // mais ici nous conservons l'arithmétique entière, en vérifiant in_min
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+  return (x - in_min) * (out_max - out_min + 1) / (in_max - in_min + 1) + out_min;
 }
 
 /* USER CODE BEGIN 4 */
@@ -269,29 +254,9 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
-    // L'interruption se déclenche MAINTENANT 500ms après le HAL_ADC_Start_IT()
-
-    // 1. Lire la valeur
-    // La résolution 12 bits (4095) est utilisée.
-    ADC_VAL = HAL_ADC_GetValue(&hadc1);
-
-    // 2. Mise à l'échelle (en supposant une plage 0-4095 vers 0-100)
-    value = map(ADC_VAL, 0, 4095, 0, 100);
-
-    // 3. Bascule de la LED selon la valeur (seuil 50%)
-    // Si le potentiomètre dépasse la moitié, la LED s'allume.
-    if (value >= 50)
-    {
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-    }
-    else
-    {
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-    }
-
-    // IMPORTANT : PAS DE RELANCE ICI. La relance est dans la boucle main.
+	  ADC_VAL = HAL_ADC_GetValue(&hadc1);
+	  value = map(ADC_VAL, 0, 4095, 0, 100);
 }
-/* USER CODE END 4 */
 /* USER CODE END 4 */
 
 /**
