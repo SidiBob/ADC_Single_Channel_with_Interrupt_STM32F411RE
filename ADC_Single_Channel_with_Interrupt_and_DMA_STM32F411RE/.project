@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>ADC_Single_Channel_with_Interrupt_and_DMA_STM32F411RE</name>
+	<name>ADC_Single_Channel_with_Interrupt_STM32F411RE</name>
 	<comment></comment>
 	<projects>
 	</projects>
