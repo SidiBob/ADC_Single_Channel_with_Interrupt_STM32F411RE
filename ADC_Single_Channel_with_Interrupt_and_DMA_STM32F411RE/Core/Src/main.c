@@ -98,7 +98,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_ADC_Start_IT(&hadc1);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_VAL, 1);
   while (1)
   {
   }
